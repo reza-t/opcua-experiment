@@ -2,23 +2,28 @@ from time import sleep
 import random
 from opcua import Server, ua
 
+
 server = Server()
-server.set_endpoint("opc.tcp://127.0.0.1:12345")
+server.set_endpoint("opc.tcp://127.0.0.1:4841")
 server.set_security_policy([
     ua.SecurityPolicyType.NoSecurity
 ])
 
-server.register_namespace("Room1")
-objects = server.get_objects_node()
+name = "OPCUA_ROOM-SERVER"
+address_space = server.register_namespace(name)
 
-tempsens = objects.add_object('ns=2;s="TS1"', "Temperature Sensor 1")
-tempsens.add_variable('ns=2;s="TS1_VendorName"', "TS1 Vendor Name", "Reza's Room")
-tempsens.add_variable('ns=2;s="TS1_SerialNumber"', "TS1 Serial Number", 12345678)
-temp = tempsens.add_variable('ns=2;s="TS1_Temperature"', "TS1 Temperature", 20)
-bulb = objects.add_object(2, "Light Bulb")
+node = server.get_objects_node()
 
-state = bulb.add_variable(2, "State of light Bulb", False)
-state.set_writable()
+param = node.add_object(address_space, "Parameters")
+
+temp = param.add_variable(address_space, "Temperature", 0.0)
+humidity = param.add_variable(address_space, "Temperature", 0.0)
+loc = param.add_variable(address_space, "Location", "Kiel")
+
+temp.set_writable()
+humidity.set_writable()
+loc.set_writable()
+
 temperature = 20.0
 try:
     print("Start Server")
@@ -27,8 +32,9 @@ try:
     while True:
         temperature = random.uniform(-1, 1)
         temp.set_value(temperature)
-        print("New Temperature: " + str(temp.get_value()))
-        print("State of Light bulb: " + str(state.get_value()))
+        humidity.set_value(random.uniform(0, 100))
+
+        print(temp.get_value(), humidity.get_value(), loc.get_value())
 
         sleep(2)
 finally:

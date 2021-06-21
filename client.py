@@ -1,23 +1,31 @@
+import time
+
 from opcua import Client, ua
 
-client = Client("opc.tcp://127.0.0.1:12345")
-client.connect()
+client = Client("opc.tcp://127.0.0.1:4841")
+client.set_user("test")
+client.set_password("test2")
+client.security_policy = ua.SecurityPolicy
+try:
+    client.connect()
+    print("Client Connected")
+    while True:
+        nodid = "ns=2;i=2"
+        temp = client.get_node(nodid)
 
-client.get_namespace_array()
-objects = client.get_objects_node()
-# objects.get_children()
-bulb = objects.get_children()[2]
-tempsens = objects.get_children()[1]
-# bulb.get_children()
-# bulb.get_children()[0].get_browse_name()
-state = bulb.get_children()[0]
-# state.get_value()
-state.set_value(True)
-tempsens.get_children()
-for i in tempsens.get_children():
-    print(i.get_value())
+        temperature = temp.get_value()
 
-temp = client.get_node('ns=2;s="TS1_Temperature"')
-print(temp.get_browse_name())
-print(temp.get_value())
-client.close_session()
+        print("temperature", temperature)
+
+        hum = client.get_node("ns=2;i=3")
+        humidity = hum.get_value()
+        print("humidity", humidity)
+
+        loc = client.get_node("ns=2;i=4")
+        location = loc.get_value()
+        print("location", location)
+        # out = < string -> variant>
+        time.sleep(2)
+finally:
+    client.disconnect()
+    print("Client disconnect")
